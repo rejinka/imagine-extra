@@ -73,9 +73,9 @@ class Neighborhood implements FilterInterface
 
 				// set new color - has to be between 0 and 255!
                 $image->draw()->dot(new Point($x, $y), new Color(array(
-					'red'   => $sumRed   < 0 ? 0 : ($sumRed   > 255 ? 255 : $sumRed),
-					'red'   => $sumGreen < 0 ? 0 : ($sumGreen > 255 ? 255 : $sumGreen),
-					'red'   => $sumBlue  < 0 ? 0 : ($sumBlue  > 255 ? 255 : $sumBlue),
+					'red'     => max(0, min(255, $sumRed)),
+					'green'   => max(0, min(255, $sumGreen)),
+					'blue'    => max(0, min(255, $sumBlue)),
                 )));
             }
 
