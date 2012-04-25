@@ -11,6 +11,16 @@ use \Imagine\Exception\InvalidArgumentException,
 use \ND\Imagine\Filter\Utilities\Matrix;
 
 
+/**
+ * Borderdetection based on Laplace-Operator. Three different variants are offered:
+ *
+ *               First          Second            Third
+ *              0,  1, 0       1,  1, 1,       -1,  2, -1,
+ *              1, -4, 1  and  1, -8, 1,  and   2, -4,  2,
+ *              0,  1, 0       1,  1, 1        -1,  2, -1
+ *
+ * Consider to apply this filter on a grayscaled image.
+ */
 class Borderdetection extends Neighborhood implements FilterInterface
 {
     const VARIANT_ONE   = 0;
@@ -33,27 +43,13 @@ class Borderdetection extends Neighborhood implements FilterInterface
             ));
         else if (self::VARIANT_THREE === $variant)
             $matrix = new Matrix(3, 3, array(
-                -1, 2, -1,
-                2, -4,  2,
-                -1, 2, -1
+                -1,  2, -1,
+                 2, -4,  2,
+                -1,  2, -1
             ));
         else
             throw new InvalidArgumentException('Variant ' . $variant . ' unknown');
 
         parent::__construct($matrix);
-    }
-
-    /**
-     * Applies scheduled transformation to ImageInterface instance
-     * Returns processed ImageInterface instance
-     *
-     * @param \Imagine\Image\ImageInterface $image
-     *
-     * @return \Imagine\Image\ImageInterface
-     */
-    public function apply(ImageInterface $image)
-    {
-        $grayscale = new Grayscale();
-        return parent::apply($grayscale->apply($image));
     }
 }

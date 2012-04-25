@@ -7,7 +7,9 @@ use \Imagine\Filter\FilterInterface,
     \Imagine\Image\ImageInterface,
     \Imagine\Image\Point;
 
-
+/**
+ * The Negation filter negates every color of every pixel. Negation means calculating 255 - color.
+ */
 final class Negation extends OnPixelBased implements FilterInterface
 {
 	public function __construct()

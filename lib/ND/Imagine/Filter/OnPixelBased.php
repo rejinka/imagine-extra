@@ -2,18 +2,26 @@
 
 namespace ND\Imagine\Filter;
 
-use \Imagine\Filter\FilterInterface,
+use \Imagine\Exception\InvalidArgumentException,
+	\Imagine\Filter\FilterInterface,
     \Imagine\Image\Color,
     \Imagine\Image\ImageInterface,
     \Imagine\Image\Point;
 
 
-abstract class OnPixelBased
+/**
+ * The OnPixelBased takes a lambda function, and for each pixel, this function is called with the
+ * image  (\Imagine\Image\ImageInterface) and the current point (\Imagine\Image\Point)
+ */
+class OnPixelBased implements FilterInterface
 {
 	protected $callback;
 
 	public function __construct($callback)
 	{
+		if (!is_callable($callback))
+			throw new InvalidArgumentException('$callback has to be a lambda function');
+
 		$this->callback = $callback;
 	}
 

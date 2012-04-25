@@ -9,7 +9,19 @@ use \Imagine\Filter\FilterInterface,
 
 use \ND\Imagine\Filter\Utilities\Matrix;
 
-
+/**
+ * The Neighborhood filter takes a matrix and calculates the color current pixel based on its neighborhood. For example:
+ *
+ *           a, b, c
+ * Matrix =  d, e, f
+ *           g, h, i
+ *
+ * and color{i, j} the color of the pixel at position (i, j). It calculates the color of pixel (x, y) like that:
+ *
+ * color (x, y) =   a * color(x-1, y-1) + b * color(x, y-1) + c * color(x+1, y-1)
+ *                + d * color(x-1, y)   + e * color(x, y)   + f * color(x+1, y)
+ *                + g * color(x-1, y+1) + h * color(x, y+1) + i * color(x+1, y+1)
+ */
 class Neighborhood implements FilterInterface
 {
     /**
@@ -17,6 +29,9 @@ class Neighborhood implements FilterInterface
      */
     protected $matrix = array();
 
+	/**
+	 * @param \ND\Imagine\Filter\Utilities\Matrix $matrix
+	 */
     public function __construct(Matrix $matrix)
     {
         $this->matrix = $matrix;
@@ -44,36 +59,23 @@ class Neighborhood implements FilterInterface
                 $sumGreen = 0;
                 $sumBlue  = 0;
 
+				// calculate new color
                 for ($boxX = $x-$dWidth, $matrixX = 0; $boxX <= $x + $dWidth; $boxX++, $matrixX++)
                     for ($boxY = $y-$dHeight, $matrixY = 0; $boxY <= $y + $dHeight; $boxY++, $matrixY++)
                     {
-                            $sumRed   = $sumRed + $this->matrix->getElementAt($matrixX, $matrixY) *
-                                $oldImage->getColorAt(new Point($boxX, $boxY))->getRed();
-                            $sumGreen = $sumGreen + $this->matrix->getElementAt($matrixX, $matrixY) *
-                                $oldImage->getColorAt(new Point($boxX, $boxY))->getGreen();
-                            $sumBlue  = $sumBlue + $this->matrix->getElementAt($matrixX, $matrixY) *
-                                $oldImage->getColorAt(new Point($boxX, $boxY))->getBlue();
+						$sumRed   = $sumRed + $this->matrix->getElementAt($matrixX, $matrixY) *
+							$oldImage->getColorAt(new Point($boxX, $boxY))->getRed();
+						$sumGreen = $sumGreen + $this->matrix->getElementAt($matrixX, $matrixY) *
+							$oldImage->getColorAt(new Point($boxX, $boxY))->getGreen();
+						$sumBlue  = $sumBlue + $this->matrix->getElementAt($matrixX, $matrixY) *
+							$oldImage->getColorAt(new Point($boxX, $boxY))->getBlue();
                     }
 
-                if ($sumRed < 0)
-                    $sumRed = 0;
-                else if (255 < $sumRed)
-                    $sumRed = 255;
-
-                if ($sumGreen < 0)
-                    $sumGreen = 0;
-                else if (255 < $sumGreen)
-                    $sumGreen = 255;
-
-                if ($sumBlue < 0)
-                    $sumBlue = 0;
-                else if (255 < $sumBlue)
-                    $sumBlue = 255;
-
+				// set new color - has to be between 0 and 255!
                 $image->draw()->dot(new Point($x, $y), new Color(array(
-                    'red'   => $sumRed,
-                    'green' => $sumGreen,
-                    'blue'  => $sumBlue
+					'red'   => $sumRed   < 0 ? 0 : ($sumRed   > 255 ? 255 : $sumRed),
+					'red'   => $sumGreen < 0 ? 0 : ($sumGreen > 255 ? 255 : $sumGreen),
+					'red'   => $sumBlue  < 0 ? 0 : ($sumBlue  > 255 ? 255 : $sumBlue),
                 )));
             }
 
