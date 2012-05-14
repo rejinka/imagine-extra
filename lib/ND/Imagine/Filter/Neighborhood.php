@@ -27,14 +27,14 @@ class Neighborhood implements FilterInterface
     /**
      * @var Matrix
      */
-    protected $matrix = array();
+    protected $matrix;
 
 	/**
 	 * @param \ND\Imagine\Filter\Utilities\Matrix $matrix
 	 */
     public function __construct(Matrix $matrix)
     {
-        $this->matrix = $matrix;
+        $this->matrix   = $matrix;
     }
 
     /**
@@ -47,13 +47,22 @@ class Neighborhood implements FilterInterface
      */
     function apply(ImageInterface $image)
     {
-        $oldImage = $image->copy();
+		// We reduce the usage of methods on the image to dramatically increase the performance of this algorithm.
+		// Really... We need that performance...
+		// Therefore we first build a matrix, that holds the colors of the image.
+		$width  = $image->getSize()->getWidth();
+		$height = $image->getSize()->getHeight();
+		$byteData = new Matrix($width, $height);
+
+		for ($x = 0; $x < $width; $x++)
+			for ($y = 0; $y < $height; $y++)
+				$byteData->setElementAt($x, $y, $image->getColorAt(new Point($x, $y)));
 
         $dHeight = (int) floor(($this->matrix->getHeight()-1)/2);
         $dWidth  = (int) floor(($this->matrix->getWidth()-1)/2);
 
-        for ($y = $dHeight; $y < $image->getSize()->getHeight() - $dHeight; $y++)
-            for ($x = $dWidth; $x < $image->getSize()->getWidth() - $dWidth; $x++)
+        for ($y = $dHeight; $y < $height - $dHeight; $y++)
+            for ($x = $dWidth; $x < $width - $dWidth; $x++)
             {
                 $sumRed   = 0;
                 $sumGreen = 0;
@@ -64,18 +73,18 @@ class Neighborhood implements FilterInterface
                     for ($boxY = $y-$dHeight, $matrixY = 0; $boxY <= $y + $dHeight; $boxY++, $matrixY++)
                     {
 						$sumRed   = $sumRed + $this->matrix->getElementAt($matrixX, $matrixY) *
-							$oldImage->getColorAt(new Point($boxX, $boxY))->getRed();
+							$byteData->getElementAt($boxX, $boxY)->getRed();
 						$sumGreen = $sumGreen + $this->matrix->getElementAt($matrixX, $matrixY) *
-							$oldImage->getColorAt(new Point($boxX, $boxY))->getGreen();
+							$byteData->getElementAt($boxX, $boxY)->getGreen();
 						$sumBlue  = $sumBlue + $this->matrix->getElementAt($matrixX, $matrixY) *
-							$oldImage->getColorAt(new Point($boxX, $boxY))->getBlue();
+							$byteData->getElementAt($boxX, $boxY)->getBlue();
                     }
 
 				// set new color - has to be between 0 and 255!
                 $image->draw()->dot(new Point($x, $y), new Color(array(
-					'red'     => max(0, min(255, $sumRed)),
-					'green'   => max(0, min(255, $sumGreen)),
-					'blue'    => max(0, min(255, $sumBlue)),
+					'red'   => max(0, min(255, $sumRed)),
+					'green' => max(0, min(255, $sumGreen)),
+					'blue'  => max(0, min(255, $sumBlue))
                 )));
             }
 
